@@ -11,7 +11,7 @@ if (!Array.prototype.myFilter) {
 
         const newArr = [];
         for (let i = 0; i < this.length; i++) {
-            if (i in this) { // Handle sparse arrays
+            if (i in this) { 
                 if (userFn(this[i], i, this)) {
                     newArr.push(this[i]);
                 }
