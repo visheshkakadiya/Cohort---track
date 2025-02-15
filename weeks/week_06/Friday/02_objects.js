@@ -35,3 +35,28 @@ const values = Object.values(person)
 
 const newPair = Object.entries(person)
 // console.log(newPair);           [ [ 'name', 'Alice' ], [ 'age', 25 ], [ 'city', 'New York' ] ]
+
+
+// 6️⃣ Dynamic Property Access
+// if the property name is stored in variable then we must use ([]), instead of dot notation
+
+const prop = "status"
+const user = {
+    name: "Alice",
+    age: "21",
+    [prop]: "Active"
+}
+const key = "name"
+// console.log(user[key]);             Alice
+// console.log(user.status);           Active
+
+
+const newkeys = ["name", "age", "city"]
+const newValues = ["John", 30, "Berlin"]
+
+const newPerson = {}
+
+for(let i = 0; i < newkeys.length; i++) {
+    newPerson[newkeys[i]] = newValues[i]
+}
+console.log(newPerson)
