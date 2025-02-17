@@ -9,7 +9,7 @@ const book = {
 };
 
 for (const key in book) {
-   // console.log(key, ":", book[key]);
+    // console.log(key, ":", book[key]);
 }
 
 const keys = Object.keys(book)
@@ -31,11 +31,11 @@ const entries = Object.entries(book)
 
 const property = "salary";
 const employee = {
-  name: "David",
-  [property]: 5000
+    name: "David",
+    [property]: 5000
 };
 const newKeys = "salary"
-console.log(employee[newKeys])
+// console.log(employee[newKeys])
 
 const prop = ["title", "year"]
 const val = ["Book", 2011]
@@ -45,8 +45,38 @@ const person = {
 }
 // console.log(person)
 
-for(let i = 0; i < prop.length; i++) {
+for (let i = 0; i < prop.length; i++) {
     person[prop[i]] = val[i]
 }
 
-console.log(person)
+// console.log(person)
+
+
+
+
+
+// Q-3 :-
+// 1. Extract "brand" and "model" into separate variables.
+// 2. Extract "range" and "topSpeed" from "specs" into variables.
+// 3. Set a default value for a new property "color" (default: "Black").
+// 4. Print all extracted values.
+
+const car = {
+    brand: "Tesla",
+    model: "Model S",
+    specs: {
+        range: "400 miles",
+        topSpeed: "200 mph"
+    }
+};
+
+const {brand : company, model : newModel} = car;
+// console.log(company)
+// console.log(newModel);
+
+const {specs: {range, topSpeed}} = car
+// console.log(range);
+// console.log(topSpeed);
+
+const {color = "Black"} = car
+console.log(color)
