@@ -32,15 +32,21 @@ function handleInput(input) {
         try {
             expression = expression.replace(/÷/g, "/")
             expression = expression.replace(/x/g, "*")
-            expression = calculateExpression(expression);
-            screen.innerText = expression
+            expression = String(calculateExpression(expression));
+            if(screen.innerText === "") {
+                screen.innerText = "invalid"
+            } else {
+                screen.innerText = expression
+            }
             return
+            
         } catch (error) {
-            console.log(error)
+            expression = "invalid"
+            screen.innerText = expression
         }
     }
     else {
-        if('+-/%*.x'.includes(input) && '+-/%*x.'.includes(expression.slice(-1))) {
+        if('+-/%*.x'.includes(input) && '+-/%*.x'.includes(expression.slice(-1))) {
             return;
         }
         expression += input
