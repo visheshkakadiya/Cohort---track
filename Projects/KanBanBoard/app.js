@@ -1,9 +1,11 @@
 const todoBoard = document.getElementById('todo-board');
 const allBoard = document.querySelectorAll('.board');
-const allItems = document.querySelectorAll('.item')
-const addBoard = document.getElementById('add-board')
+const allItems = document.querySelectorAll('.item');
+const addBoard = document.getElementById('add-board');
 
 let boardPop = false;
+
+// Function to add fly class events to task cards
 function addFlyClassEvents(taskCard) {
     taskCard.addEventListener('dragstart', function () {
         taskCard.classList.add('flying');
@@ -14,24 +16,77 @@ function addFlyClassEvents(taskCard) {
     });
 }
 
+// Apply fly class events to all existing items
 allItems.forEach(addFlyClassEvents);
 
+// Function to update task count for a board
+function updateTaskCount(board) {
+    const totalTasks = board.querySelector('.task-count');
+    if (totalTasks) {
+        const taskCount = board.querySelectorAll('.item').length;
+        totalTasks.innerText = `Total Tasks: ${taskCount}`;
+    }
+}
+
+// Function to handle sorting within a board
+function initSortableList(e) {
+    e.preventDefault();
+    const draggingItem = document.querySelector(".flying");
+    if (!draggingItem) return;
+
+    // Get the current board where the dragging is happening
+    const currentBoard = e.currentTarget;
+    
+    // Get all items in this board except the one being dragged
+    const siblings = [...currentBoard.querySelectorAll(".item:not(.flying)")];
+    
+    // Find the sibling after which the dragging item should be placed
+    // Only reposition when dragged past the midpoint of another item
+    const nextSibling = siblings.find(sibling => {
+        const siblingRect = sibling.getBoundingClientRect();
+        const siblingMidpoint = siblingRect.top + siblingRect.height / 2;
+        return e.clientY <= siblingMidpoint;
+    });
+    
+    // Insert the dragging item before the found sibling
+    currentBoard.insertBefore(draggingItem, nextSibling);
+}
+
+// Function to attach sorting listeners to a board
+function attachSortingListeners(board) {
+    board.addEventListener("dragover", initSortableList);
+    board.addEventListener("dragenter", e => e.preventDefault());
+}
+
+// Apply sorting listeners to all existing boards
+allBoard.forEach(attachSortingListeners);
+
+// Handle dragging between boards
 allBoard.forEach(board => {
     board.addEventListener('dragover', function (event) {
         event.preventDefault();
 
         const getFlying = document.querySelector('.flying');
         if (getFlying) {
+            const previousBoard = getFlying.parentElement;
             board.appendChild(getFlying);
+            
+            // Update counts for both boards
+            if (previousBoard && previousBoard !== board && 
+                previousBoard.querySelector('.task-count')) {
+                updateTaskCount(previousBoard);
+            }
+            updateTaskCount(board);
         }
     });
 });
 
+// Function to handle adding a new board
 function AddBoard() {
     addBoard.addEventListener('click', function () {
-        if (boardPop) return
+        if (boardPop) return;
 
-        boardPop = true
+        boardPop = true;
 
         const popup = document.createElement("div");
         popup.classList.add("popup");
@@ -51,40 +106,65 @@ function AddBoard() {
                 </div>
             `;
 
-        document.body.appendChild(popup)
+        document.body.appendChild(popup);
 
         // Close popup
         document.getElementById('closePopup').addEventListener('click', function () {
-            popup.remove()
-            boardPop = false
-        })
+            popup.remove();
+            boardPop = false;
+        });
 
         document.getElementById('createBoard').addEventListener('click', function () {
-
-            boardName = document.getElementById('boardName').value.trim()
-            boardColor = document.getElementById('boardColor').value;
+            const boardName = document.getElementById('boardName').value.trim();
+            const boardColor = document.getElementById('boardColor').value;
 
             if (boardName) {
-                const newBoard = document.createElement('div')
+                const newBoard = document.createElement('div');
+                newBoard.classList.add('board');
+                newBoard.setAttribute("id", `${boardName}`);
+                newBoard.style.backgroundColor = boardColor;
+                newBoard.innerHTML = `<nav>${boardName}</nav>`;
 
+                // Create Task Count Display
+                const totalTasks = document.createElement("span");
+                totalTasks.classList.add("task-count");
+                totalTasks.innerText = `Total Tasks: 0`;
+                newBoard.appendChild(totalTasks);
 
-                const addTask = document.createElement('button')
-                addTask.innerText = 'Add Task'
-                addTask.setAttribute('id', `${boardName}`)
-                addTask.classList.add('addTask')
+                const taskInput = document.createElement('input');
+                taskInput.type = 'text';
+                taskInput.placeholder = 'Enter task...';
+                newBoard.appendChild(taskInput);
+
+                const addTask = document.createElement('button');
+                addTask.innerText = 'Add Task';
+                addTask.setAttribute('id', `${boardName}-add-task`);
+                addTask.classList.add('addTask');
+
+                const delBoard = document.createElement('button');
+                delBoard.innerText = "Delete";
+                delBoard.classList.add('delBoard');
+                newBoard.appendChild(delBoard);
+
+                taskInput.addEventListener("keypress", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); 
+                        addTask.click(); 
+                    }
+                });
+                
+                newBoard.appendChild(addTask);
 
                 // Task Adding Logic
                 addTask.addEventListener('click', function () {
-
-
                     const taskCard = document.createElement("div");
                     taskCard.classList.add('item');
                     taskCard.setAttribute("draggable", true);
 
                     // Task Text
                     if (taskInput.value.trim() === '') {
-                        alert('Please Add Task')
-                        return
+                        alert('Please Add Task');
+                        return;
                     }
                     const taskText = document.createElement("span");
                     taskText.innerText = taskInput.value;
@@ -138,13 +218,12 @@ function AddBoard() {
                         editBtn.addEventListener("click", saveTask, { once: true });
                     });
 
-
                     // Delete Button
                     const deleteBtn = document.createElement("i");
                     deleteBtn.classList.add("fa-solid", "fa-trash", "delete-task");
                     deleteBtn.addEventListener("click", function () {
                         taskCard.remove();
-                        updateTaskCount()
+                        updateTaskCount(newBoard);
                     });
 
                     // Append everything to task card
@@ -154,90 +233,39 @@ function AddBoard() {
                     taskCard.appendChild(deleteBtn);
 
                     addFlyClassEvents(taskCard);
-                    document.getElementById(`${newBoard.id}`).appendChild(taskCard);
-                    taskInput.value = ""
+                    newBoard.appendChild(taskCard);
+                    taskInput.value = "";
 
-                    updateTaskCount()
-
+                    updateTaskCount(newBoard);
                 });
 
-                delBoard = document.createElement('button')
-                delBoard.innerText = "Delete"
-                delBoard.classList.add('delBoard')
-
-                newBoard.classList.add('board')
-                newBoard.setAttribute("id", `${boardName}`)
-                newBoard.style.backgroundColor = boardColor
-                newBoard.innerHTML = `<nav>${boardName}</nav>`
-
-                // Create Task Count Display
-                const totalTasks = document.createElement("span");
-                totalTasks.classList.add("task-count");
-                totalTasks.innerText = `Total Tasks: 0`;
-                newBoard.appendChild(totalTasks)
-
-
-                const taskInput = document.createElement('input');
-                taskInput.type = 'text';
-                taskInput.placeholder = 'Enter task...';
-
-                newBoard.appendChild(taskInput)
-                newBoard.appendChild(delBoard)
-                newBoard.appendChild(addTask)
-                document.querySelector('.container').appendChild(newBoard)
+                document.querySelector('.container').appendChild(newBoard);
 
                 delBoard.addEventListener('click', function () {
-                    alert('Are you sure?')
-                    newBoard.remove()
-                })
-
-                function updateTaskCount() {
-                    // totalTasks.innerText = `Total Tasks: ${newBoard.querySelectorAll('.item').length}`;
-
-                    const taskList = Array.from(newBoard.querySelectorAll('.item'))
-                    let total = 0
-
-                    for (let i = 0; i < taskList.length; i++) {
-                        total++;
+                    if (confirm('Are you sure you want to delete this board?')) {
+                        newBoard.remove();
                     }
-
-                    totalTasks.innerText = `Total Tasks: ${total}`
-                    console.log(taskList)
-                    console.log(total)
-                }
-
-                newBoard.addEventListener('dragover', function (event) {
-                    event.preventDefault()
-
-                    const getFlying = document.querySelector('.flying');
-                    newBoard.appendChild(getFlying)
-                    updateTaskCount()
                 });
 
-                // Note: this observer section got help from AI and MDN documents😅 
-                // (i was stuck on this counter logic while dragging tasks, i've tried many approaches but failed, that's why)
-                // Basically this notice, which task been removed from board
+                // Set up sorting for the new board
+                attachSortingListeners(newBoard);
+
+                // Set up mutation observer for task count updates
                 const observer = new MutationObserver(function (mutations) {
                     mutations.forEach(function (mutation) {
-                        if (mutation.removedNodes && mutation.removedNodes.length > 0) {
-                            mutation.removedNodes.forEach(function (removedNode) {
-                                if (removedNode.classList && removedNode.classList.contains('item')) {
-                                    updateTaskCount();
-                                }
-                            });
+                        if (mutation.type === 'childList') {
+                            updateTaskCount(newBoard);
                         }
                     });
                 });
 
                 observer.observe(newBoard, { childList: true });
-
             }
 
-            popup.remove()
-            boardPop = false
-        })
-
-    })
+            popup.remove();
+            boardPop = false;
+        });
+    });
 }
 
 AddBoard();
