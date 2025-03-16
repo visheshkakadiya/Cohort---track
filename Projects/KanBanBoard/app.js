@@ -120,10 +120,14 @@ function AddBoard() {
 
             if (boardName) {
                 const newBoard = document.createElement('div');
-                newBoard.classList.add('board');
-                newBoard.setAttribute("id", `${boardName}`);
-                newBoard.style.backgroundColor = boardColor;
-                newBoard.innerHTML = `<nav>${boardName}</nav>`;
+        newBoard.classList.add('board');
+        newBoard.setAttribute("id", `${boardName}`);
+        // Only set a data attribute for the color, don't set background
+        newBoard.setAttribute("data-color", boardColor);
+        newBoard.innerHTML = `<nav>${boardName}</nav>`;
+
+        const navElement = newBoard.querySelector('nav');
+        navElement.style.setProperty('--indicator-color', boardColor);
 
                 // Create Task Count Display
                 const totalTasks = document.createElement("span");
@@ -237,6 +241,12 @@ function AddBoard() {
                     taskInput.value = "";
 
                     updateTaskCount(newBoard);
+
+                    const boardColor = newBoard.getAttribute('data-color');
+            taskCard.style.borderLeftColor = boardColor;
+            
+            // Add the pulse indicator color
+            taskCard.style.setProperty('--pulse-color', boardColor);
                 });
 
                 document.querySelector('.container').appendChild(newBoard);
