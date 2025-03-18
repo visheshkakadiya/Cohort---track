@@ -3,6 +3,7 @@ const submitButton = document.getElementById('submitMood');
 const moodHistory = document.getElementById('moodHistory');
 const dateInput = document.getElementById('moodDate');
 const calendarGrid = document.getElementById('calendarGrid');
+const clearStorage = document.getElementById("clearStorage");
 
 let selectedMood = null; 
 let selectedEmo = null;
@@ -12,7 +13,12 @@ moodButtons.forEach(button => {
     button.addEventListener('click', () => {
         selectedMood = button.getAttribute('data-mood');
         selectedEmo = button.innerText;
-        console.log(selectedEmo)
+
+        // Reset all buttons
+        moodButtons.forEach(btn => btn.classList.remove("selected"));
+        
+        button.classList.add("selected");
+
         console.log("Selected Mood:", selectedMood);
     });
 });
@@ -32,7 +38,7 @@ submitButton.addEventListener('click', () => {
     const existingMood = moodLogs.find(log => log.date === selectedDate);
 
     if (existingMood) {
-        console.log("Mood already set for this date:", existingMood.mood);
+        alert("Mood already set for this date: " + existingMood.emo);
         return;
     }
 
@@ -42,8 +48,15 @@ submitButton.addEventListener('click', () => {
         localStorage.setItem('moodLogs', JSON.stringify(moodLogs));
 
         loadMoodHistory();
-        generateWeekView();
+        generateCalendar();
+    } else {
+        alert('Please select mood')
     }
+
+    // Reset selection
+    selectedMood = null;
+    selectedEmo = null;
+    moodButtons.forEach(btn => btn.classList.remove("selected"));
 });
 
 // Load past moods
@@ -60,7 +73,7 @@ function loadMoodHistory() {
 }
 
 // Generate a simple calendar with moods
-function generateWeekView() {
+function generateCalendar() {
     calendarGrid.innerHTML = ""; 
 
     let moodLogs = JSON.parse(localStorage.getItem("moodLogs")) || [];
@@ -68,33 +81,47 @@ function generateWeekView() {
     let today = new Date();
     let year = today.getFullYear();
     let month = today.getMonth();
-    let day = today.getDate();
 
-    let startOfWeek = new Date(year, month, day - today.getDay()); // Sunday start
-    let weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    let firstDay = new Date(year, month, 1).getDay();
+    let daysInMonth = new Date(year, month + 1, 0).getDate();
 
     let calendarHTML = "<table><tr>";
 
-    for (let i = 0; i < 7; i++) {
-        let currentDay = new Date(startOfWeek);
-        currentDay.setDate(startOfWeek.getDate() + i);
-        let dateString = currentDay.toISOString().split('T')[0];
+    for (let i = 0; i < firstDay; i++) {
+        calendarHTML += "<td></td>";
+    }
 
+    for (let day = 1; day <= daysInMonth; day++) {
+        let dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         let moodEntry = moodLogs.find(log => log.date === dateString);
 
-        calendarHTML += `<td>${weekDays[i]}<br>${currentDay.getDate()}`;
         if (moodEntry) {
-            calendarHTML += `<br>${moodEntry.emo}`;
+            calendarHTML += `<td class="mood-set">${day} <br> ${moodEntry.emo}</td>`;
+        } else {
+            calendarHTML += `<td>${day}</td>`;
         }
-        calendarHTML += `</td>`;
+
+        if ((firstDay + day) % 7 === 0) {
+            calendarHTML += "</tr><tr>";
+        }
     }
 
     calendarHTML += "</tr></table>";
     calendarGrid.innerHTML = calendarHTML;
 }
 
+// Function to clear local storage
+function clearStorageData() {
+    localStorage.clear();
+    moodHistory.innerHTML = "";  // Clear UI
+    generateCalendar();  // Refresh calendar
+}
+
+// Attach event listener to the clear button
+clearStorage.addEventListener('click', clearStorageData);
+
 // Load everything on page start
 window.onload = () => {
     loadMoodHistory();
-    generateWeekView();
+    generateCalendar();
 };
